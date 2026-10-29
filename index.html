@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PartyBook — Party &amp; Event Rental Book</title>
+<style>
+  :root{ --ink:#1c2430; --mut:#5b6a7a; --line:#d8dee6; --bg:#f4f6f8; --card:#fff;
+    --acc:#7c3aed; --acc2:#5b21b6; --ok:#157347; --warn:#b45309; --bad:#b91c1c; --soft:#ede9fe; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--ink); font-size:15px; line-height:1.45; }
+  header{ background:var(--acc2); color:#fff; padding:14px 16px; }
+  header h1{ margin:0; font-size:21px; }
+  header p{ margin:2px 0 0; font-size:13px; opacity:.85; }
+  nav{ display:flex; flex-wrap:wrap; gap:6px; padding:10px 12px; background:#fff; border-bottom:1px solid var(--line);
+    position:sticky; top:0; z-index:5; }
+  nav button{ border:1px solid var(--line); background:#fff; border-radius:999px; padding:7px 13px; font-size:14px;
+    cursor:pointer; color:var(--ink); }
+  nav button.on{ background:var(--acc); border-color:var(--acc); color:#fff; font-weight:600; }
+  main{ max-width:980px; margin:0 auto; padding:14px 12px 60px; }
+  .card{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:12px; }
+  .grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; }
+  .stat{ background:var(--soft); border-radius:10px; padding:10px 12px; }
+  .stat b{ display:block; font-size:19px; }
+  .stat span{ font-size:12px; color:var(--mut); text-transform:uppercase; letter-spacing:.4px; }
+  h2{ font-size:18px; margin:4px 0 10px; } h3{ font-size:15px; margin:14px 0 6px; }
+  table{ width:100%; border-collapse:collapse; font-size:14px; }
+  th,td{ text-align:left; padding:7px 6px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th{ font-size:12px; text-transform:uppercase; letter-spacing:.4px; color:var(--mut); }
+  td.r,th.r{ text-align:right; }
+  .btn{ display:inline-block; border:1px solid var(--acc); background:var(--acc); color:#fff; border-radius:8px;
+    padding:8px 14px; font-size:14px; cursor:pointer; text-decoration:none; }
+  .btn.ghost{ background:#fff; color:var(--acc); }
+  .btn.small{ padding:5px 10px; font-size:13px;min-height:40px;}
+  .btn.danger{ background:#fff; color:var(--bad); border-color:var(--bad); }
+  label{ display:block; font-size:13px; color:var(--mut); margin:8px 0 3px; }
+  input,select,textarea{ width:100%; padding:9px; border:1px solid var(--line); border-radius:8px; font-size:15px;
+    background:#fff; color:var(--ink); }
+  textarea{ min-height:64px; }
+  .row{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .row3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+  @media (max-width:560px){ .row,.row3{ grid-template-columns:1fr; } }
+  .badge{ display:inline-block; border-radius:999px; padding:2px 9px; font-size:12px; font-weight:600; }
+  .b-res{ background:#e0e7ff; color:#3730a3; } .b-out{ background:#fef3c7; color:#92400e; }
+  .b-ret{ background:#dbeafe; color:#1e40af; } .b-done{ background:#dcfce7; color:#166534; }
+  .b-can{ background:#fee2e2; color:#991b1b; } .b-flag{ background:#fee2e2; color:#991b1b; }
+  .b-ok{ background:#dcfce7; color:#166534; } .b-warn{ background:#fef3c7; color:#92400e; }
+  .b-demo{ background:#fef3c7; color:#92400e; border:1px solid #f59e0b; }
+  .tblwrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .tblwrap table{ min-width:560px; }
+  .banner{ background:#fef3c7; border:1px solid #f59e0b; border-radius:10px; padding:10px 12px; margin-bottom:12px; font-size:14px; }
+  .stickybar{ position:sticky; bottom:12px; z-index:4; background:#fff; border:1px solid var(--line); border-radius:12px; padding:10px 12px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; box-shadow:0 2px 10px rgba(0,0,0,.12); margin-top:12px; }
+  .mut{ color:var(--mut); font-size:13px; }
+  .flag{ color:var(--bad); font-weight:600; }
+  .ok{ color:var(--ok); font-weight:600; }
+  .totbox{ background:var(--soft); border-radius:10px; padding:12px; }
+  .totbox table td{ border-bottom:1px dashed #c9c2e8; }
+  .actions{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+  details{ margin-top:8px; } summary{ cursor:pointer; font-weight:600; }
+  .faq p{ margin:4px 0 10px; }
+  #printSheet{ display:none; }
+  @media print{
+    body>*{ display:none !important; }
+    body>#printSheet{ display:block !important; }
+    #printSheet{ font-size:13px; color:#000; }
+    #printSheet table td,#printSheet table th{ border-bottom:1px solid #999; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>🎪 PartyBook</h1>
+  <p>Party &amp; event rental book — inventory, bookings, deposits, profit. One file, offline, no subscription.</p>
+</header>
+<nav id="tabs"></nav>
+<main id="app"></main>
+<div id="printSheet"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   PartyBook — Party & Event Rental Book (single-file, offline)
+   Inventory + order builder with date-conflict detection,
+   damage-deposit accounting, pull sheets, printable rental
+   agreements, and per-event profit. Data lives in localStorage
+   only. No account, no server, nothing leaves the device.
+   ============================================================ */
+var LS_KEY = "partybook_v1";
+var CATEGORIES = ["Tents","Tables","Chairs","Bounce Houses","Linens","Concessions","Lighting","Dance Floor","Games","Other"];
+var STATUSES = ["Reserved","Out","Returned","Completed","Cancelled"];
+
+/* ---------- helpers ---------- */
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function num(v){ var n = parseFloat(v); return isFinite(n) ? n : 0; }
+function int(v){ var n = parseInt(v,10); return isFinite(n) ? n : 0; }
+function round2(n){ return Math.round((num(n)+Number.EPSILON)*100)/100; }
+function money(n){ var v = round2(n); var neg = v<0; v = Math.abs(v);
+  return (neg?"-$":"$") + v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,","); }
+var _uidC = 0;
+function uid(p){ _uidC++; return (p||"id") + "_" + Date.now().toString(36) + _uidC.toString(36) + Math.floor(Math.random()*1e4).toString(36); }
+function pad2(n){ return (n<10?"0":"")+n; }
+function todayISO(){ var d = new Date(); return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); }
+function parseISO(s){ if(typeof s!=="string") return null; var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s); if(!m) return null;
+  var y=+m[1], mo=+m[2], da=+m[3]; if(mo<1||mo>12||da<1||da>31) return null;
+  var d = new Date(Date.UTC(y,mo-1,da)); if(d.getUTCFullYear()!==y||d.getUTCMonth()!==mo-1||d.getUTCDate()!==da) return null; return d; }
+function validISODate(s){ return !!parseISO(s); }
+function addDays(iso,n){ var d = parseISO(iso); if(!d) return iso; d.setUTCDate(d.getUTCDate()+n);
+  return d.getUTCFullYear()+"-"+pad2(d.getUTCMonth()+1)+"-"+pad2(d.getUTCDate()); }
+function daysBetween(a,b){ var da=parseISO(a), db=parseISO(b); if(!da||!db) return 0;
+  return Math.round((db-da)/86400000); }
+var DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"], MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function fmtDate(iso){ var d = parseISO(iso); if(!d) return iso||"—";
+  return DOW[d.getUTCDay()]+" "+MON[d.getUTCMonth()]+" "+d.getUTCDate()+", "+d.getUTCFullYear(); }
+function rangesOverlap(aStart,aEnd,bStart,bEnd){ return aStart<=bEnd && bStart<=aEnd; }
+
+/* ---------- seed / sample data ---------- */
+function seedData(){
+  var t = todayISO();
+  var items = [
+    { id:"i_tent2030", demo:true, name:"20×30 frame tent", category:"Tents", qtyOwned:2, rateDay:225, rateWeekend:275, depositEach:150, waiverPct:10, replacement:1800, notes:"Includes stakes, sidewalls on request" },
+    { id:"i_popup", demo:true, name:"10×10 pop-up canopy", category:"Tents", qtyOwned:6, rateDay:35, rateWeekend:45, depositEach:50, waiverPct:10, replacement:180, notes:"" },
+    { id:"i_table6", demo:true, name:"6-ft folding table", category:"Tables", qtyOwned:24, rateDay:9, rateWeekend:12, depositEach:10, waiverPct:10, replacement:65, notes:"" },
+    { id:"i_tablerd", demo:true, name:"60-in round table", category:"Tables", qtyOwned:10, rateDay:11, rateWeekend:14, depositEach:10, waiverPct:10, replacement:95, notes:"Seats 8" },
+    { id:"i_chair", demo:true, name:"White folding chair", category:"Chairs", qtyOwned:120, rateDay:2, rateWeekend:2.5, depositEach:2, waiverPct:10, replacement:18, notes:"" },
+    { id:"i_bounce", demo:true, name:"Bounce house 15×15", category:"Bounce Houses", qtyOwned:3, rateDay:150, rateWeekend:185, depositEach:100, waiverPct:12, replacement:1450, notes:"Blower + stakes included; needs 20A outlet" },
+    { id:"i_linen", demo:true, name:"Tablecloth (white, 120-in round)", category:"Linens", qtyOwned:60, rateDay:3, rateWeekend:4, depositEach:3, waiverPct:10, replacement:14, notes:"Returned bagged; we launder" },
+    { id:"i_popcorn", demo:true, name:"Popcorn machine (8 oz kettle)", category:"Concessions", qtyOwned:2, rateDay:45, rateWeekend:55, depositEach:75, waiverPct:10, replacement:320, notes:"Kernels/oil packs billed as used" },
+    { id:"i_lights", demo:true, name:"LED string lights, 48-ft strand", category:"Lighting", qtyOwned:12, rateDay:15, rateWeekend:20, depositEach:25, waiverPct:10, replacement:60, notes:"" },
+    { id:"i_dance", demo:true, name:"Dance floor, 12×12 set", category:"Dance Floor", qtyOwned:2, rateDay:180, rateWeekend:220, depositEach:200, waiverPct:10, replacement:1600, notes:"Level ground only" }
+  ];
+  var bookings = [
+    { id:"b_garcia", demo:true, customer:"Maria Garcia — wedding reception", phone:"555-0148", email:"mgarcia@example.com",
+      address:"118 Meadowbrook Ln", miles:12, eventDate:addDays(t,-9), outDate:addDays(t,-10), backDate:addDays(t,-8),
+      billingMode:"weekend", deliveryType:"deliver", waiverAccepted:true, taxPct:0, status:"Completed",
+      lines:[ {itemId:"i_tent2030",qty:1}, {itemId:"i_table6",qty:8}, {itemId:"i_chair",qty:50}, {itemId:"i_linen",qty:8} ],
+      charges:[], depositPaid:354, depositRefunded:354, depositWithheld:0, depositNote:"",
+      amountPaid:640.80, laborHours:3, cleaningCost:25, otherCosts:0,
+      notes:"Sidewalls up on north side. Gate code in texts." },
+    { id:"b_johnson", demo:true, customer:"Dana Johnson — graduation party", phone:"555-0119", email:"",
+      address:"Customer pickup", miles:0, eventDate:t, outDate:addDays(t,-1), backDate:addDays(t,1),
+      billingMode:"weekend", deliveryType:"pickup", waiverAccepted:false, taxPct:0, status:"Out",
+      lines:[ {itemId:"i_bounce",qty:1}, {itemId:"i_popup",qty:2}, {itemId:"i_chair",qty:20} ],
+      charges:[], depositPaid:240, depositRefunded:0, depositWithheld:0, depositNote:"",
+      amountPaid:200, laborHours:1, cleaningCost:0, otherCosts:0,
+      notes:"Balance due on return." },
+    { id:"b_nguyen", demo:true, customer:"Linh Nguyen — 40th birthday", phone:"555-0173", email:"linh.n@example.com",
+      address:"742 Orchid Ct", miles:8, eventDate:addDays(t,4), outDate:addDays(t,3), backDate:addDays(t,5),
+      billingMode:"weekend", deliveryType:"deliver", waiverAccepted:true, taxPct:0, status:"Reserved",
+      lines:[ {itemId:"i_tent2030",qty:1}, {itemId:"i_tablerd",qty:6}, {itemId:"i_chair",qty:40}, {itemId:"i_lights",qty:4}, {itemId:"i_popcorn",qty:1} ],
+      charges:[], depositPaid:465, depositRefunded:0, depositWithheld:0, depositNote:"",
+      amountPaid:300, laborHours:2.5, cleaningCost:15, otherCosts:0,
+      notes:"Deliver after 3 PM — HOA quiet hours." },
+    { id:"b_smith", demo:true, customer:"Smith family reunion", phone:"555-0126", email:"",
+      address:"Customer pickup", miles:0, eventDate:addDays(t,-19), outDate:addDays(t,-20), backDate:addDays(t,-18),
+      billingMode:"weekend", deliveryType:"pickup", waiverAccepted:false, taxPct:0, status:"Completed",
+      lines:[ {itemId:"i_bounce",qty:1}, {itemId:"i_table6",qty:4} ],
+      charges:[ {label:"Damage — torn seam repair", amount:65}, {label:"Late return fee", amount:30} ],
+      depositPaid:140, depositRefunded:75, depositWithheld:65, depositNote:"Withheld $65 for seam repair; rest refunded on return.",
+      amountPaid:328, laborHours:1.5, cleaningCost:20, otherCosts:0,
+      notes:"Seam torn on slide side; repair shop ticket #441." },
+    { id:"b_church", demo:true, customer:"Grace Church picnic (cancelled)", phone:"555-0105", email:"",
+      address:"900 Chapel Rd", miles:5, eventDate:addDays(t,6), outDate:addDays(t,6), backDate:addDays(t,7),
+      billingMode:"weekend", deliveryType:"deliver", waiverAccepted:false, taxPct:0, status:"Cancelled",
+      lines:[ {itemId:"i_popup",qty:4}, {itemId:"i_chair",qty:40} ],
+      charges:[], depositPaid:0, depositRefunded:0, depositWithheld:0, depositNote:"",
+      amountPaid:0, laborHours:0, cleaningCost:0, otherCosts:0,
+      notes:"Cancelled by customer — rain date never set." }
+  ];
+  return {
+    settings: { company:"Bright Day Rentals", phone:"555-0100", email:"hello@brightdayrentals.example",
+      address:"44 Depot St", deliveryPerMile:2.50, laborRate:40, waiverPct:10, taxPct:0 },
+    items: items, bookings: bookings
+  };
+}
+
+/* ---------- state ---------- */
+var state = null;
+function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
+function load(){
+  try{
+    var raw = localStorage.getItem(LS_KEY);
+    if(raw){ var parsed = JSON.parse(raw); if(parsed && (Array.isArray(parsed.items)||Array.isArray(parsed.bookings))){
+      state = sanitizeState(parsed); return; } }
+  }catch(e){}
+  state = seedData(); save();
+}
+function sanitizeState(s){
+  if(!s || typeof s!=="object") s = {};
+  function str(v){ return typeof v==="string" ? v : (v==null ? "" : String(v)); }
+  function arr(v){ return Array.isArray(v) ? v : []; }
+  function pos(v){ var n = num(v); return n<0 ? 0 : n; }
+  var dflt = seedData().settings;
+  var out = { settings:{ company:"", phone:"", email:"", address:"", deliveryPerMile:2.5, laborRate:40, waiverPct:10, taxPct:0 },
+    items:[], bookings:[] };
+  if(s && s.legal && typeof s.legal==="object") out.legal = { termsVersion: String(s.legal.termsVersion || ""), acceptedDate: String(s.legal.acceptedDate || ""), disclaimerShown: !!s.legal.disclaimerShown };
+  if(s.settings){ ["company","phone","email","address"].forEach(function(k){ out.settings[k]=str(s.settings[k]); });
+    ["deliveryPerMile","laborRate","waiverPct","taxPct"].forEach(function(k){
+      out.settings[k] = s.settings[k]==null ? dflt[k] : pos(s.settings[k]); }); }
+  arr(s.items).forEach(function(it){ if(!it || typeof it!=="object") return;
+    out.items.push({ id: str(it.id)||uid("i"), demo: !!it.demo, name: str(it.name)||"Unnamed item",
+      category: CATEGORIES.indexOf(it.category)>=0 ? it.category : "Other",
+      qtyOwned: Math.max(0, int(it.qtyOwned)), rateDay: pos(it.rateDay), rateWeekend: pos(it.rateWeekend),
+      depositEach: pos(it.depositEach), waiverPct: pos(it.waiverPct), replacement: pos(it.replacement),
+      notes: str(it.notes) }); });
+  arr(s.bookings).forEach(function(b){ if(!b || typeof b!=="object") return;
+    var lines = arr(b.lines).filter(function(l){ return l && typeof l==="object"; }).map(function(l){
+      return { itemId: str(l.itemId), qty: Math.max(0, int(l.qty)) }; });
+    var charges = arr(b.charges).filter(function(c){ return c && typeof c==="object"; }).map(function(c){
+      return { label: str(c.label)||"Charge", amount: round2(num(c.amount)) }; });
+    out.bookings.push({ id: str(b.id)||uid("b"), demo: !!b.demo, customer: str(b.customer),
+      phone: str(b.phone), email: str(b.email), address: str(b.address), miles: pos(b.miles),
+      eventDate: validISODate(b.eventDate) ? b.eventDate : todayISO(),
+      outDate: validISODate(b.outDate) ? b.outDate : todayISO(),
+      backDate: validISODate(b.backDate) ? b.backDate : todayISO(),
+      billingMode: b.billingMode==="daily" ? "daily" : "weekend",
+      deliveryType: b.deliveryType==="pickup" ? "pickup" : "deliver",
+      waiverAccepted: !!b.waiverAccepted, taxPct: pos(b.taxPct),
+      status: STATUSES.indexOf(b.status)>=0 ? b.status : "Reserved",
+      lines: lines, charges: charges,
+      depositPaid: pos(b.depositPaid), depositRefunded: pos(b.depositRefunded),
+      depositWithheld: pos(b.depositWithheld), depositNote: str(b.depositNote),
+      amountPaid: pos(b.amountPaid), laborHours: pos(b.laborHours),
+      cleaningCost: pos(b.cleaningCost), otherCosts: pos(b.otherCosts), notes: str(b.notes) }); });
+  return out;
+}
+function itemById(id){ for(var i=0;i<state.items.length;i++) if(state.items[i].id===id) return state.items[i]; return null; }
+function bookingById(id){ for(var i=0;i<state.bookings.length;i++) if(state.bookings[i].id===id) return state.bookings[i]; return null; }
+
+/* ---------- money math (all amounts in dollars, rounded to cents) ---------- */
+/* Billing: "weekend" = flat weekend rate per unit for the whole rental.
+   "daily"   = day rate per unit × billed days (back − out, minimum 1). */
+function billedDays(b){ var d = daysBetween(b.outDate, b.backDate); return d<1 ? 1 : d; }
+function lineRate(item, b){ return b.billingMode==="daily" ? round2(item.rateDay * billedDays(b)) : round2(item.rateWeekend); }
+function bookingTotals(b){
+  var days = billedDays(b);
+  var lines = [], subtotal = 0, waiverTotal = 0, depositRequired = 0;
+  b.lines.forEach(function(l){
+    var item = itemById(l.itemId); if(!item || l.qty<=0) return;
+    var rate = lineRate(item, b);
+    var rental = round2(rate * l.qty);
+    var waiver = b.waiverAccepted ? round2(rental * item.waiverPct / 100) : 0;
+    var dep = round2(item.depositEach * l.qty);
+    subtotal = round2(subtotal + rental); waiverTotal = round2(waiverTotal + waiver);
+    depositRequired = round2(depositRequired + dep);
+    lines.push({ itemId:item.id, name:item.name, qty:l.qty, rate:rate, rental:rental, waiver:waiver, deposit:dep });
+  });
+  var deliveryFee = b.deliveryType==="deliver" ? round2(num(b.miles) * 2 * num(state.settings.deliveryPerMile)) : 0;
+  var taxBase = round2(subtotal + waiverTotal + deliveryFee);
+  var tax = round2(taxBase * num(b.taxPct) / 100);
+  var chargesTotal = 0; b.charges.forEach(function(c){ chargesTotal = round2(chargesTotal + num(c.amount)); });
+  var total = round2(taxBase + tax + chargesTotal);
+  var depositHeld = round2(num(b.depositPaid) - num(b.depositRefunded) - num(b.depositWithheld));
+  var costs = round2(num(b.laborHours) * num(state.settings.laborRate) + num(b.cleaningCost) + num(b.otherCosts));
+  return { days:days, lines:lines, subtotal:subtotal, waiverTotal:waiverTotal, deliveryFee:deliveryFee,
+    taxBase:taxBase, tax:tax, chargesTotal:chargesTotal, total:total,
+    depositRequired:depositRequired, depositHeld:depositHeld,
+    depositSettled: round2(num(b.depositRefunded) + num(b.depositWithheld)),
+    balanceDue: round2(total - num(b.amountPaid)), costs:costs, profit: round2(total - costs) };
+}
+
+/* ---------- availability / conflict detection ---------- */
+/* A booking "holds" its gear while Reserved or Out. Cancelled, Returned and
+   Completed bookings hold nothing. Windows are the out→back dates, inclusive. */
+function holdsGear(b){ return b.status==="Reserved" || b.status==="Out"; }
+function reservedQty(itemId, outDate, backDate, excludeId){
+  var q = 0, conflicts = [];
+  state.bookings.forEach(function(b){
+    if(b.id===excludeId || !holdsGear(b)) return;
+    if(!rangesOverlap(outDate, backDate, b.outDate, b.backDate)) return;
+    b.lines.forEach(function(l){ if(l.itemId===itemId && l.qty>0){ q += l.qty; conflicts.push(b.id); } });
+  });
+  return { qty:q, conflicts:conflicts };
+}
+function availability(itemId, outDate, backDate, excludeId){
+  var item = itemById(itemId); if(!item) return { owned:0, reserved:0, available:0, conflicts:[] };
+  var r = reservedQty(itemId, outDate, backDate, excludeId);
+  return { owned:item.qtyOwned, reserved:r.qty, available:item.qtyOwned - r.qty, conflicts:r.conflicts };
+}
+function bookingConflicts(b){
+  var out = [];
+  b.lines.forEach(function(l){ if(l.qty<=0) return;
+    var a = availability(l.itemId, b.outDate, b.backDate, b.id);
+    if(l.qty > a.available){ var item = itemById(l.itemId);
+      out.push({ itemId:l.itemId, name:item ? item.name : l.itemId, want:l.qty, available:a.available, owned:a.owned }); }
+  });
+  return out;
+}
+function isOverdue(b){ return b.status==="Out" && b.backDate < todayISO(); }
+
+/* ---------- money summary ---------- */
+function moneySummary(){
+  var s = { booked:0, collected:0, outstanding:0, depositsHeld:0, profit:0, activeCount:0 };
+  state.bookings.forEach(function(b){ if(b.status==="Cancelled") return;
+    var t = bookingTotals(b);
+    s.booked = round2(s.booked + t.total); s.collected = round2(s.collected + num(b.amountPaid));
+    if(t.balanceDue > 0) s.outstanding = round2(s.outstanding + t.balanceDue);
+    if(holdsGear(b) || b.status==="Returned") s.depositsHeld = round2(s.depositsHeld + Math.max(0, t.depositHeld));
+    s.profit = round2(s.profit + t.profit);
+    if(holdsGear(b)) s.activeCount++;
+  });
+  return s;
+}
+
+/* ---------- UI ---------- */
+var ui = { tab:"dashboard", editingBooking:null, editingItem:null, draft:null, availOut:"", availBack:"" };
+var TABS = [ ["dashboard","Dashboard"], ["bookings","Bookings"], ["builder","New Booking"], ["inventory","Inventory"],
+  ["availability","Availability"], ["money","Money"], ["settings","Settings"], ["help","Help"] ];
+
+function statusBadge(st){
+  var cls = { "Reserved":"b-res", "Out":"b-out", "Returned":"b-ret", "Completed":"b-done", "Cancelled":"b-can" }[st] || "b-res";
+  return '<span class="badge '+cls+'">'+esc(st)+'</span>';
+}
+function renderTabs(){
+  document.getElementById("tabs").innerHTML = TABS.map(function(t){
+    return '<button data-tab="'+t[0]+'" class="'+(ui.tab===t[0]?"on":"")+'">'+t[1]+'</button>';
+  }).join("");
+  document.querySelectorAll("#tabs button").forEach(function(b){
+    b.addEventListener("click", function(){ ui.tab = b.getAttribute("data-tab");
+      if(ui.tab==="builder" && !ui.draft) newDraft(); render(); });
+  });
+}
+function render(){
+  renderTabs();
+  var app = document.getElementById("app");
+  if(ui.tab==="dashboard") app.innerHTML = viewDashboard();
+  else if(ui.tab==="bookings") app.innerHTML = viewBookings();
+  else if(ui.tab==="builder") app.innerHTML = viewBuilder();
+  else if(ui.tab==="inventory") app.innerHTML = viewInventory();
+  else if(ui.tab==="availability") app.innerHTML = viewAvailability();
+  else if(ui.tab==="money") app.innerHTML = viewMoney();
+  else if(ui.tab==="settings") app.innerHTML = viewSettings();
+  else app.innerHTML = viewHelp();
+  bind();
+}
+function sortedBookings(){ return state.bookings.slice().sort(function(a,b){
+  return a.outDate < b.outDate ? -1 : a.outDate > b.outDate ? 1 : 0; }); }
+
+function demoBadge(flag){ return flag ? ' <span class="badge b-demo">DEMO</span>' : ''; }
+function hasDemoRecords(){ return state.items.some(function(x){ return x.demo; }) || state.bookings.some(function(x){ return x.demo; }); }
+function viewDashboard(){
+  var s = moneySummary(); var t = todayISO();
+  var demoBanner = hasDemoRecords() ? '<div class="banner"><b>Sample data:</b> you are looking at demo bookings and inventory (Bright Day Rentals) so you can see how PartyBook works. <button class="btn small ghost" data-cleardemo="1">Clear sample data</button></div>' : '';
+  var upcoming = sortedBookings().filter(function(b){ return holdsGear(b) && b.backDate >= t; }).slice(0,6);
+  var overdue = state.bookings.filter(isOverdue);
+  var conf = [];
+  state.bookings.forEach(function(b){ if(holdsGear(b)){ var c = bookingConflicts(b);
+    c.forEach(function(x){ conf.push({ booking:b, item:x }); }); } });
+  var h = demoBanner + '<div class="grid">'
+    + '<div class="stat"><b>'+s.activeCount+'</b><span>Active bookings</span></div>'
+    + '<div class="stat"><b>'+money(s.booked)+'</b><span>Booked revenue</span></div>'
+    + '<div class="stat"><b>'+money(s.collected)+'</b><span>Collected</span></div>'
+    + '<div class="stat"><b>'+money(s.outstanding)+'</b><span>Balances owed</span></div>'
+    + '<div class="stat"><b>'+money(s.depositsHeld)+'</b><span>Deposits held</span></div>'
+    + '<div class="stat"><b>'+money(s.profit)+'</b><span>Profit after costs</span></div></div>';
+  if(overdue.length){ h += '<div class="card"><h2>⏰ Overdue returns</h2>' + overdue.map(function(b){
+    return '<p><span class="flag">'+esc(b.customer)+'</span>'+demoBadge(b.demo)+' — was due back '+fmtDate(b.backDate)
+      +' ('+daysBetween(b.backDate, t)+' day'+(daysBetween(b.backDate,t)===1?"":"s")+' late) '
+      +'<button class="btn small ghost" data-edit="'+b.id+'">Open</button></p>'; }).join("") + '</div>'; }
+  if(conf.length){ h += '<div class="card"><h2>⚠️ Overbooked gear</h2>' + conf.map(function(c){
+    return '<p><span class="flag">'+esc(c.item.name)+'</span> on “'+esc(c.booking.customer)+'” — wants '
+      +c.item.want+', only '+c.item.available+' of '+c.item.owned+' free for '+fmtDate(c.booking.outDate)+' → '+fmtDate(c.booking.backDate)
+      +' <button class="btn small ghost" data-edit="'+c.booking.id+'">Open</button></p>'; }).join("") + '</div>'; }
+  h += '<div class="card"><h2>Coming up</h2>';
+  if(!upcoming.length) h += '<p class="mut">No active bookings. Tap “New Booking” to start one.</p>';
+  h += upcoming.map(function(b){ var tt = bookingTotals(b);
+    return '<p>'+statusBadge(b.status)+' <b>'+esc(b.customer)+'</b>'+demoBadge(b.demo)+'<br><span class="mut">Out '+fmtDate(b.outDate)
+      +' · Event '+fmtDate(b.eventDate)+' · Back '+fmtDate(b.backDate)+' · Total '+money(tt.total)
+      +(tt.balanceDue>0 ? ' · <span class="flag">Balance '+money(tt.balanceDue)+'</span>' : ' · <span class="ok">Paid in full</span>')
+      +'</span> <button class="btn small ghost" data-edit="'+b.id+'">Open</button> '
+      +'<button class="btn small ghost" data-pull="'+b.id+'">Pull sheet</button></p>'; }).join("");
+  h += '</div>';
+  return h;
+}
+
+function viewBookings(){
+  var list = sortedBookings();
+  var h = '<div class="card"><h2>Bookings</h2>';
+  if(!list.length) h += '<p class="mut">No bookings yet.</p>';
+  h += '<div class="tblwrap"><table><tr><th>Customer</th><th>Out → Back</th><th>Status</th><th class="r">Total</th><th class="r">Balance</th><th></th></tr>';
+  list.forEach(function(b){ var tt = bookingTotals(b);
+    h += '<tr><td><b>'+esc(b.customer)+'</b>'+demoBadge(b.demo)+'<br><span class="mut">'+fmtDate(b.eventDate)+'</span></td>'
+      +'<td>'+fmtDate(b.outDate)+'<br>→ '+fmtDate(b.backDate)+'</td><td>'+statusBadge(b.status)
+      +(isOverdue(b)?' <span class="badge b-flag">OVERDUE</span>':'')+'</td>'
+      +'<td class="r">'+money(tt.total)+'</td><td class="r">'+(tt.balanceDue>0?'<span class="flag">'+money(tt.balanceDue)+'</span>':money(0))+'</td>'
+      +'<td><button class="btn small ghost" data-edit="'+b.id+'">Open</button> '
+      +'<button class="btn small ghost" data-duplicate="'+b.id+'">Duplicate</button> '
+      +'<button class="btn small ghost" data-agree="'+b.id+'">Agreement</button></td></tr>'; });
+  h += '</table></div></div>';
+  return h;
+}
+
+/* ---------- booking editor ---------- */
+function blankBooking(){
+  var t = todayISO();
+  return { id:null, demo:false, customer:"", phone:"", email:"", address:"", miles:0,
+    eventDate:addDays(t,2), outDate:addDays(t,1), backDate:addDays(t,3),
+    billingMode:"weekend", deliveryType:"deliver", waiverAccepted:true, taxPct:num(state.settings.taxPct),
+    status:"Reserved", lines:[], charges:[], depositPaid:0, depositRefunded:0, depositWithheld:0,
+    depositNote:"", amountPaid:0, laborHours:0, cleaningCost:0, otherCosts:0, notes:"" };
+}
+function newDraft(){ ui.draft = blankBooking(); ui.editingBooking = null; }
+function editDraft(id){ var b = bookingById(id); if(!b) return;
+  ui.draft = JSON.parse(JSON.stringify(b)); ui.editingBooking = id; ui.tab = "builder"; render(); }
+function duplicateBooking(id){ var b = bookingById(id); if(!b) return;
+  var copy = JSON.parse(JSON.stringify(b)); copy.id = uid("b"); copy.demo = false;
+  state.bookings.push(copy); save(); editDraft(copy.id); }
+function customerMemory(){
+  var seen = {}, out = [];
+  sortedBookings().forEach(function(b){ var key = (b.customer||"").trim().toLowerCase(); if(!key || seen[key]) return; seen[key] = true; out.push(b); });
+  return out;
+}
+function autofillCustomer(){
+  var inp = document.getElementById("f_customer"); if(!inp || !ui.draft) return;
+  var key = inp.value.trim().toLowerCase(); if(!key) return;
+  var match = null;
+  sortedBookings().forEach(function(b){ if((b.customer||"").trim().toLowerCase() === key) match = b; });
+  if(!match) return;
+  function fill(id, val){ var el = document.getElementById(id); if(el && !el.value.trim() && val) el.value = val; }
+  fill("f_phone", match.phone); fill("f_email", match.email); fill("f_address", match.address);
+}
+function draftTotalsHtml(){
+  var d = ui.draft; var tmp = Object.assign({}, d, { id: d.id || "__draft__" });
+  var tt = bookingTotals(tmp);
+  var conf = bookingConflicts(tmp);
+  var h = '<div class="totbox"><h3 style="margin-top:0">Totals</h3><table>';
+  tt.lines.forEach(function(l){ h += '<tr><td>'+esc(l.name)+' × '+l.qty+'</td><td class="r">'+money(l.rental)+'</td></tr>'; });
+  h += '<tr><td>Rental subtotal</td><td class="r">'+money(tt.subtotal)+'</td></tr>';
+  if(d.waiverAccepted) h += '<tr><td>Damage waiver</td><td class="r">'+money(tt.waiverTotal)+'</td></tr>';
+  if(d.deliveryType==="deliver") h += '<tr><td>Delivery ('+num(d.miles)+' mi × 2 × '+money(state.settings.deliveryPerMile)+')</td><td class="r">'+money(tt.deliveryFee)+'</td></tr>';
+  if(num(d.taxPct)>0) h += '<tr><td>Tax ('+num(d.taxPct)+'% on rental + waiver + delivery)</td><td class="r">'+money(tt.tax)+'</td></tr>';
+  d.charges.forEach(function(c){ h += '<tr><td>'+esc(c.label)+'</td><td class="r">'+money(c.amount)+'</td></tr>'; });
+  h += '<tr><td><b>Total due</b></td><td class="r"><b>'+money(tt.total)+'</b></td></tr>'
+    + '<tr><td>Paid so far</td><td class="r">'+money(d.amountPaid)+'</td></tr>'
+    + '<tr><td>Balance due</td><td class="r">'+money(tt.balanceDue)+'</td></tr>'
+    + '<tr><td>Deposit required on this gear</td><td class="r">'+money(tt.depositRequired)+'</td></tr>'
+    + '<tr><td>Deposit held right now (paid − refunded − withheld)</td><td class="r">'+money(tt.depositHeld)+'</td></tr>'
+    + '<tr><td>Costs (labor '+num(d.laborHours)+'h × '+money(state.settings.laborRate)+' + cleaning + other)</td><td class="r">'+money(tt.costs)+'</td></tr>'
+    + '<tr><td><b>Event profit</b></td><td class="r"><b>'+money(tt.profit)+'</b></td></tr></table>';
+  if(conf.length){ h += '<p class="flag">⚠️ Overbooked: ' + conf.map(function(c){
+      return esc(c.name)+' (wants '+c.want+', only '+c.available+' free)'; }).join("; ")
+      + '. You can still save — but you will be promising gear you do not have for those dates.</p>'; }
+  else if(tt.lines.length){ h += '<p class="ok">✓ Every line fits the gear free for these dates.</p>'; }
+  return h + '</div>';
+}
+function viewBuilder(){
+  var d = ui.draft || (ui.draft = blankBooking());
+  var h = '<div class="card"><h2>'+(ui.editingBooking ? "Edit booking" : "New booking")+'</h2>'
+    + '<label>Customer / event</label><input id="f_customer" list="customerDatalist" value="'+esc(d.customer)+'" placeholder="e.g. Dana Johnson — graduation party">'
+    + '<datalist id="customerDatalist">' + customerMemory().map(function(b){ return '<option value="'+esc(b.customer)+'">'; }).join("") + '</datalist>'
+    + '<p class="mut" style="margin:2px 0 0">Returning customer? Pick a past name and PartyBook fills in phone, email and address still blank from their last booking.</p>'
+    + '<div class="row"><div><label>Phone</label><input id="f_phone" value="'+esc(d.phone)+'"></div>'
+    + '<div><label>Email</label><input id="f_email" value="'+esc(d.email)+'"></div></div>'
+    + '<label>Delivery address (or “Customer pickup”)</label><input id="f_address" value="'+esc(d.address)+'">'
+    + '<div class="row3"><div><label>Out date (gear leaves)</label><input type="date" id="f_out" value="'+esc(d.outDate)+'"></div>'
+    + '<div><label>Event date</label><input type="date" id="f_event" value="'+esc(d.eventDate)+'"></div>'
+    + '<div><label>Back date (gear returns)</label><input type="date" id="f_back" value="'+esc(d.backDate)+'"></div></div>'
+    + '<div class="row3"><div><label>Billing</label><select id="f_billing">'
+    + '<option value="weekend"'+(d.billingMode==="weekend"?" selected":"")+'>Weekend — flat rate per rental</option>'
+    + '<option value="daily"'+(d.billingMode==="daily"?" selected":"")+'>Daily — day rate × days out</option></select></div>'
+    + '<div><label>Delivery</label><select id="f_delivery">'
+    + '<option value="deliver"'+(d.deliveryType==="deliver"?" selected":"")+'>We deliver</option>'
+    + '<option value="pickup"'+(d.deliveryType==="pickup"?" selected":"")+'>Customer picks up</option></select></div>'
+    + '<div><label>One-way miles (delivery)</label><input inputmode="decimal" type="number" min="0" step="any" id="f_miles" value="'+num(d.miles)+'"></div></div>'
+    + '<div class="row3"><div><label>Status</label><select id="f_status">'
+    + STATUSES.map(function(s){ return '<option'+(d.status===s?" selected":"")+'>'+s+'</option>'; }).join("") + '</select></div>'
+    + '<div><label>Damage waiver</label><select id="f_waiver">'
+    + '<option value="1"'+(d.waiverAccepted?" selected":"")+'>Customer accepts (adds % per item)</option>'
+    + '<option value="0"'+(!d.waiverAccepted?" selected":"")+'>Customer declines</option></select></div>'
+    + '<div><label>Tax % (on rental + waiver + delivery)</label><input inputmode="decimal" type="number" min="0" step="any" id="f_tax" value="'+num(d.taxPct)+'"></div></div>'
+    + '<label>Notes</label><textarea id="f_notes">'+esc(d.notes)+'</textarea></div>';
+  /* gear lines */
+  h += '<div class="card"><h2>Gear</h2><div class="tblwrap"><table><tr><th>Item</th><th>Rate</th><th>Free for these dates</th><th style="width:90px">Qty</th></tr>';
+  state.items.forEach(function(it){
+    var line = null; d.lines.forEach(function(l){ if(l.itemId===it.id) line = l; });
+    var a = availability(it.id, d.outDate, d.backDate, d.id || "__draft__");
+    var rate = lineRate(it, d);
+    h += '<tr><td><b>'+esc(it.name)+'</b>'+demoBadge(it.demo)+'<br><span class="mut">'+esc(it.category)+' · deposit '+money(it.depositEach)+' ea</span></td>'
+      + '<td data-rate-for="'+it.id+'">'+money(rate)+(d.billingMode==="daily" ? ' <span class="mut">('+billedDays(d)+'d)</span>' : '')+'</td>'
+      + '<td data-avail-for="'+it.id+'">'+(a.available <= 0 ? '<span class="flag">0 of '+it.qtyOwned+'</span>' : a.available+' of '+it.qtyOwned)+'</td>'
+      + '<td><input inputmode="decimal" type="number" min="0" step="1" data-qty="'+it.id+'" value="'+(line ? line.qty : 0)+'"></td></tr>';
+  });
+  h += '</table></div><p class="mut">“Free” counts this booking’s own gear as available to itself. Reserved and Out bookings hold their gear; Returned, Completed and Cancelled bookings do not.</p></div>';
+  /* charges */
+  h += '<div class="card"><h2>Extra charges (damage, late, cleaning…)</h2><div id="chargeRows">';
+  d.charges.forEach(function(c, i){
+    h += '<div class="row"><div><label>Label</label><input data-chlabel="'+i+'" value="'+esc(c.label)+'"></div>'
+      + '<div><label>Amount</label><input inputmode="decimal" type="number" step="any" data-chamt="'+i+'" value="'+num(c.amount)+'"></div></div>'; });
+  h += '</div><div class="actions"><button class="btn small ghost" id="addCharge">+ Add charge</button></div></div>';
+  /* money in/out */
+  h += '<div class="card"><h2>Money</h2><div class="row3">'
+    + '<div><label>Amount paid by customer</label><input inputmode="decimal" type="number" min="0" step="any" id="f_paid" value="'+num(d.amountPaid)+'"></div>'
+    + '<div><label>Deposit paid</label><input inputmode="decimal" type="number" min="0" step="any" id="f_deppaid" value="'+num(d.depositPaid)+'"></div>'
+    + '<div><label>Deposit refunded</label><input inputmode="decimal" type="number" min="0" step="any" id="f_depref" value="'+num(d.depositRefunded)+'"></div></div>'
+    + '<div class="row3"><div><label>Deposit withheld (damage/late)</label><input inputmode="decimal" type="number" min="0" step="any" id="f_depwith" value="'+num(d.depositWithheld)+'"></div>'
+    + '<div><label>Delivery / job labor hours</label><input inputmode="decimal" type="number" min="0" step="any" id="f_labor" value="'+num(d.laborHours)+'"></div>'
+    + '<div><label>Cleaning cost</label><input inputmode="decimal" type="number" min="0" step="any" id="f_clean" value="'+num(d.cleaningCost)+'"></div></div>'
+    + '<div class="row"><div><label>Other costs</label><input inputmode="decimal" type="number" min="0" step="any" id="f_other" value="'+num(d.otherCosts)+'"></div>'
+    + '<div><label>Deposit note (why anything was withheld)</label><input id="f_depnote" value="'+esc(d.depositNote)+'"></div></div>'
+    + '<div id="totals" style="margin-top:12px">'+draftTotalsHtml()+'</div>'
+    + '<div class="actions"><button class="btn" id="saveBooking">Save booking</button>'
+    + (ui.editingBooking ? '<button class="btn ghost" id="printAgree">Print agreement</button>'
+      + '<button class="btn ghost" id="printPull">Print pull sheet</button>'
+      + '<button class="btn danger" id="delBooking">Delete booking</button>' : '')
+    + '<button class="btn ghost" id="resetDraft">Start over</button></div></div>';
+  var ttSticky = bookingTotals(Object.assign({}, d, { id: d.id || "__draft__" }));
+  h += '<div class="stickybar"><button class="btn" id="saveBookingSticky">Save booking</button><span><b>Total: <span id="stickyBuilderTotal">'+money(ttSticky.total)+'</span></b> <span class="mut">· Balance '+money(ttSticky.balanceDue)+'</span></span></div>';
+  return h;
+}
+function readDraftFromDOM(){
+  var d = ui.draft; if(!d) return;
+  function v(id){ var el = document.getElementById(id); return el ? el.value : ""; }
+  d.customer = v("f_customer"); d.phone = v("f_phone"); d.email = v("f_email"); d.address = v("f_address");
+  d.outDate = v("f_out") || d.outDate; d.eventDate = v("f_event") || d.eventDate; d.backDate = v("f_back") || d.backDate;
+  d.billingMode = v("f_billing") || d.billingMode; d.deliveryType = v("f_delivery") || d.deliveryType;
+  d.miles = num(v("f_miles")); d.status = v("f_status") || d.status;
+  d.waiverAccepted = v("f_waiver") === "1"; d.taxPct = num(v("f_tax")); d.notes = v("f_notes");
+  d.amountPaid = num(v("f_paid")); d.depositPaid = num(v("f_deppaid")); d.depositRefunded = num(v("f_depref"));
+  d.depositWithheld = num(v("f_depwith")); d.depositNote = v("f_depnote");
+  d.laborHours = num(v("f_labor")); d.cleaningCost = num(v("f_clean")); d.otherCosts = num(v("f_other"));
+  var lines = [];
+  document.querySelectorAll("[data-qty]").forEach(function(inp){
+    var q = int(inp.value); if(q > 0) lines.push({ itemId: inp.getAttribute("data-qty"), qty: q }); });
+  d.lines = lines;
+  var charges = [];
+  document.querySelectorAll("[data-chlabel]").forEach(function(inp){
+    var i = inp.getAttribute("data-chlabel");
+    var amtEl = document.querySelector('[data-chamt="'+i+'"]');
+    charges.push({ label: inp.value || "Charge", amount: round2(num(amtEl ? amtEl.value : 0)) }); });
+  d.charges = charges;
+}
+function refreshTotals(){
+  readDraftFromDOM();
+  var el = document.getElementById("totals"); if(el) el.innerHTML = draftTotalsHtml();
+  updateBuilderAvailability();
+  var d = ui.draft;
+  var tt = bookingTotals(Object.assign({}, d, { id: d.id || "__draft__" }));
+  var st = document.getElementById("stickyBuilderTotal"); if(st) st.textContent = money(tt.total);
+}
+function updateBuilderAvailability(){
+  var d = ui.draft; if(!d) return;
+  state.items.forEach(function(it){
+    var a = availability(it.id, d.outDate, d.backDate, d.id || "__draft__");
+    var cell = document.querySelector('[data-avail-for="'+it.id+'"]');
+    if(cell) cell.innerHTML = a.available <= 0 ? '<span class="flag">0 of '+it.qtyOwned+'</span>' : a.available+' of '+it.qtyOwned;
+    var rateCell = document.querySelector('[data-rate-for="'+it.id+'"]');
+    if(rateCell) rateCell.innerHTML = money(lineRate(it, d)) + (d.billingMode==="daily" ? ' <span class="mut">('+billedDays(d)+'d)</span>' : '');
+  });
+}
+
+/* ---------- inventory ---------- */
+function viewInventory(){
+  var editing = ui.editingItem ? itemById(ui.editingItem) : null;
+  var f = editing || { name:"", category:"Other", qtyOwned:0, rateDay:0, rateWeekend:0, depositEach:0,
+    waiverPct:num(state.settings.waiverPct), replacement:0, notes:"" };
+  var h = '<div class="card"><h2>'+(editing ? "Edit item" : "Add an item")+'</h2>'
+    + '<label>Item name</label><input id="i_name" value="'+esc(f.name)+'">'
+    + '<div class="row3"><div><label>Category</label><select id="i_cat">'
+    + CATEGORIES.map(function(c){ return '<option'+(f.category===c?" selected":"")+'>'+c+'</option>'; }).join("")+'</select></div>'
+    + '<div><label>Quantity owned</label><input inputmode="decimal" type="number" min="0" step="1" id="i_qty" value="'+int(f.qtyOwned)+'"></div>'
+    + '<div><label>Damage-waiver % (of rental)</label><input inputmode="decimal" type="number" min="0" step="any" id="i_waiver" value="'+num(f.waiverPct)+'"></div></div>'
+    + '<div class="row3"><div><label>Day rate</label><input inputmode="decimal" type="number" min="0" step="any" id="i_day" value="'+num(f.rateDay)+'"></div>'
+    + '<div><label>Weekend rate (flat)</label><input inputmode="decimal" type="number" min="0" step="any" id="i_wknd" value="'+num(f.rateWeekend)+'"></div>'
+    + '<div><label>Refundable deposit (each)</label><input inputmode="decimal" type="number" min="0" step="any" id="i_dep" value="'+num(f.depositEach)+'"></div></div>'
+    + '<div class="row"><div><label>Replacement value (each)</label><input inputmode="decimal" type="number" min="0" step="any" id="i_repl" value="'+num(f.replacement)+'"></div>'
+    + '<div><label>Notes</label><input id="i_notes" value="'+esc(f.notes)+'"></div></div>'
+    + '<div class="actions"><button class="btn" id="saveItem">'+(editing ? "Save item" : "Add item")+'</button>'
+    + (editing ? '<button class="btn ghost" id="cancelItem">Cancel edit</button><button class="btn danger" id="delItem">Delete item</button>' : '')
+    + '</div></div>';
+  h += '<div class="card"><h2>Inventory ('+state.items.length+' items)</h2><div class="tblwrap"><table>'
+    + '<tr><th>Item</th><th>Owned</th><th class="r">Day</th><th class="r">Weekend</th><th class="r">Deposit</th><th></th></tr>';
+  state.items.forEach(function(it){
+    h += '<tr><td><b>'+esc(it.name)+'</b>'+demoBadge(it.demo)+'<br><span class="mut">'+esc(it.category)+(it.notes?' · '+esc(it.notes):'')+'</span></td>'
+      + '<td>'+it.qtyOwned+'</td><td class="r">'+money(it.rateDay)+'</td><td class="r">'+money(it.rateWeekend)+'</td>'
+      + '<td class="r">'+money(it.depositEach)+'</td><td><button class="btn small ghost" data-item="'+it.id+'">Edit</button></td></tr>'; });
+  h += '</table></div></div>';
+  return h;
+}
+
+/* ---------- availability checker ---------- */
+function viewAvailability(){
+  var t = todayISO();
+  var out = ui.availOut || (ui.availOut = addDays(t, 3 - ((parseISO(t).getUTCDay()+2)%7) )); /* next Fri-ish default */
+  var back = ui.availBack || (ui.availBack = addDays(out, 2));
+  var h = '<div class="card"><h2>What’s free?</h2><div class="row">'
+    + '<div><label>Gear out</label><input type="date" id="a_out" value="'+esc(out)+'"></div>'
+    + '<div><label>Gear back</label><input type="date" id="a_back" value="'+esc(back)+'"></div></div>'
+    + '<p class="mut">Counts gear held by Reserved and Out bookings whose out→back window touches these dates.</p>'
+    + '<div class="tblwrap"><table><tr><th>Item</th><th>Owned</th><th>Out on other bookings</th><th>Free</th><th>Held by</th></tr>';
+  state.items.forEach(function(it){
+    var a = availability(it.id, out, back, null);
+    var names = a.conflicts.filter(function(v,i){ return a.conflicts.indexOf(v)===i; }).map(function(id){
+      var b = bookingById(id); return b ? esc(b.customer) : ""; }).join("; ");
+    h += '<tr><td><b>'+esc(it.name)+'</b></td><td>'+it.qtyOwned+'</td><td>'+a.reserved+'</td>'
+      + '<td>'+(a.available<=0 ? '<span class="flag">0</span>' : '<span class="ok">'+a.available+'</span>')+'</td>'
+      + '<td class="mut">'+names+'</td></tr>'; });
+  h += '</table></div></div>';
+  return h;
+}
+
+/* ---------- money ---------- */
+function viewMoney(){
+  var s = moneySummary();
+  var yr = {}; var depHeldList = [];
+  state.bookings.forEach(function(b){ if(b.status==="Cancelled") return;
+    var tt = bookingTotals(b); var y = b.eventDate.slice(0,4);
+    if(!yr[y]) yr[y] = { booked:0, collected:0, profit:0, count:0 };
+    yr[y].booked = round2(yr[y].booked + tt.total); yr[y].collected = round2(yr[y].collected + num(b.amountPaid));
+    yr[y].profit = round2(yr[y].profit + tt.profit); yr[y].count++;
+    if(tt.depositHeld > 0) depHeldList.push({ b:b, held:tt.depositHeld }); });
+  var h = '<div class="card"><h2>Money</h2><div class="grid">'
+    + '<div class="stat"><b>'+money(s.booked)+'</b><span>Booked revenue</span></div>'
+    + '<div class="stat"><b>'+money(s.collected)+'</b><span>Collected</span></div>'
+    + '<div class="stat"><b>'+money(s.outstanding)+'</b><span>Balances owed</span></div>'
+    + '<div class="stat"><b>'+money(s.depositsHeld)+'</b><span>Deposits held</span></div>'
+    + '<div class="stat"><b>'+money(s.profit)+'</b><span>Profit after costs</span></div></div>'
+    + '<h3>By event year</h3><div class="tblwrap"><table><tr><th>Year</th><th>Events</th><th class="r">Booked</th><th class="r">Collected</th><th class="r">Profit</th></tr>';
+  Object.keys(yr).sort().forEach(function(y){ var r = yr[y];
+    h += '<tr><td>'+y+'</td><td>'+r.count+'</td><td class="r">'+money(r.booked)+'</td><td class="r">'+money(r.collected)+'</td><td class="r">'+money(r.profit)+'</td></tr>'; });
+  h += '</table></div><h3>Deposits you are holding</h3>';
+  if(!depHeldList.length) h += '<p class="mut">No deposits currently held.</p>';
+  depHeldList.forEach(function(x){ h += '<p>'+esc(x.b.customer)+' — <b>'+money(x.held)+'</b> held '
+    + '<button class="btn small ghost" data-edit="'+x.b.id+'">Open</button></p>'; });
+  h += '<p class="mut">Deposits are the customer’s money, not revenue — PartyBook never counts them in booked revenue or profit. A deposit leaves “held” only when you record it refunded or withheld on the booking.</p></div>';
+  /* per-item earnings */
+  var earn = {};
+  state.bookings.forEach(function(b){ if(b.status==="Cancelled") return;
+    bookingTotals(b).lines.forEach(function(l){
+      if(!earn[l.itemId]) earn[l.itemId] = { name:l.name, rental:0, times:0 };
+      earn[l.itemId].rental = round2(earn[l.itemId].rental + l.rental); earn[l.itemId].times++; }); });
+  h += '<div class="card"><h2>Rental earnings by item</h2><div class="tblwrap"><table><tr><th>Item</th><th>Bookings</th><th class="r">Rental earned</th></tr>';
+  Object.keys(earn).sort(function(a,b){ return earn[b].rental - earn[a].rental; }).forEach(function(id){ var e = earn[id];
+    h += '<tr><td>'+esc(e.name)+'</td><td>'+e.times+'</td><td class="r">'+money(e.rental)+'</td></tr>'; });
+  h += '</table></div></div>';
+  return h;
+}
+
+/* ---------- settings / data / help ---------- */
+function viewSettings(){
+  var s = state.settings;
+  var h = '<div class="card"><h2>Business settings</h2>'
+    + '<div class="row"><div><label>Business name</label><input id="s_company" value="'+esc(s.company)+'"></div>'
+    + '<div><label>Phone</label><input id="s_phone" value="'+esc(s.phone)+'"></div></div>'
+    + '<div class="row"><div><label>Email</label><input id="s_email" value="'+esc(s.email)+'"></div>'
+    + '<div><label>Address</label><input id="s_address" value="'+esc(s.address)+'"></div></div>'
+    + '<div class="row3"><div><label>Delivery charge per mile (charged round-trip)</label><input inputmode="decimal" type="number" min="0" step="any" id="s_mile" value="'+num(s.deliveryPerMile)+'"></div>'
+    + '<div><label>Labor rate $/hr (delivery + setup, for profit)</label><input inputmode="decimal" type="number" min="0" step="any" id="s_labor" value="'+num(s.laborRate)+'"></div>'
+    + '<div><label>Default waiver % for new items</label><input inputmode="decimal" type="number" min="0" step="any" id="s_waiver" value="'+num(s.waiverPct)+'"></div></div>'
+    + '<label>Default tax % for new bookings</label><input inputmode="decimal" type="number" min="0" step="any" id="s_tax" value="'+num(s.taxPct)+'">'
+    + '<div class="actions"><button class="btn" id="saveSettings">Save settings</button></div></div>';
+  h += '<div class="card"><h2>Your data</h2>'
+    + '<p class="mut">Everything lives in this browser on this device. Export a backup before switching devices or clearing browser data.</p>'
+    + '<div class="actions"><button class="btn ghost" id="exportData">Export backup (JSON)</button>'
+    + '<button class="btn ghost" id="importBtn">Import backup</button>'
+    + '<input type="file" id="importFile" accept=".json,application/json" style="display:none"></div>'
+    + '<h3>Sample data</h3><p class="mut">The app ships with a sample business (Bright Day Rentals) so you can see it working. Clearing samples removes only the sample items and bookings — never anything you added.</p>'
+    + '<div class="actions"><button class="btn ghost" id="clearDemo">Clear sample data</button>'
+    + '<button class="btn danger" id="eraseAll">Erase EVERYTHING and start empty</button></div></div>';
+  return h;
+}
+function viewHelp(){
+  return '<div class="card faq"><h2>Help — how PartyBook works</h2>'
+  + '<h3>The booking window</h3><p>Every booking has an <b>out date</b> (gear leaves your barn) and a <b>back date</b> (gear returns). Those two dates — not the event date — are what reserve your inventory. A tent out Friday→Monday is unavailable to everyone else for that whole window.</p>'
+  + '<h3>Conflict detection</h3><p>Bookings in <b>Reserved</b> or <b>Out</b> status hold their gear. When a new booking wants more of an item than is free for its window, PartyBook flags it on the Dashboard, in the order builder, and on the Availability tab — before you promise the same tent twice. Returned, Completed and Cancelled bookings hold nothing. You can still save an overbooked booking (sometimes you plan to buy or borrow gear) — the flag stays visible until the conflict clears.</p>'
+  + '<h3>Weekend vs. daily billing</h3><p><b>Weekend</b> billing charges the item’s flat weekend rate once per rental, however many days it is out — the standard party-rental pattern for a Friday-out, Monday-back rental. <b>Daily</b> billing charges the day rate × the number of days out (back − out, minimum 1).</p>'
+  + '<h3>Damage waiver</h3><p>If the customer accepts the waiver, PartyBook adds each item’s waiver % of that item’s rental to the bill. The waiver is your optional damage-coverage charge — what it covers is your policy; say it on the agreement and keep it consistent.</p>'
+  + '<h3>Deposits</h3><p>Each item carries a refundable deposit per unit; a booking’s required deposit is the sum over its gear. Record what was paid, refunded and withheld on the booking. <b>Held = paid − refunded − withheld.</b> Deposits are never counted as revenue or profit — they are the customer’s money until you withhold some for damage or a late return, and withheld amounts should always carry a note saying why.</p>'
+  + '<h3>Delivery fee</h3><p>One-way miles × 2 (round trip) × your per-mile rate from Settings. Customer pickup is always $0.</p>'
+  + '<h3>Tax</h3><p>If you set a tax %, it applies to rental + waiver + delivery. Extra charges (damage, late fees) are not taxed. Whether you owe sales tax on rentals is your jurisdiction’s rule — PartyBook just does the arithmetic you set.</p>'
+  + '<h3>Profit</h3><p>Event profit = total due − (labor hours × labor rate + cleaning + other costs). It uses the total due, not what has been collected so far; the Money tab shows collected separately.</p>'
+  + '<h3>One book, one device — the honest limit</h3><p>PartyBook cannot sync a second phone, take online bookings, or process payments. Your records live in this browser on this device. That is the trade for no subscription and total privacy — export backups from Settings regularly.</p>'
+  + '</div>';
+}
+
+/* ---------- printing ---------- */
+function printDoc(title, bodyHtml){
+  var sheet = document.getElementById("printSheet");
+  var full = '<h1 style="font-size:19px;margin:0 0 4px">'+esc(state.settings.company || "Rental Business")+'</h1>'
+    + '<p style="margin:0 0 12px">'+esc(state.settings.address)+' · '+esc(state.settings.phone)+' · '+esc(state.settings.email)+'</p>'
+    + '<h2 style="font-size:16px">'+esc(title)+'</h2>' + bodyHtml;
+  var w = null;
+  try{ w = window.open("", "_blank"); }catch(e){}
+  if(w && w.document){ w.document.write('<html><head><title>'+esc(title)+'</title></head><body style="font-family:Arial,sans-serif;font-size:13px;max-width:720px;margin:24px auto;padding:0 16px">'+full+'</body></html>');
+    w.document.close(); w.focus(); try{ w.print(); }catch(e){} return; }
+  sheet.innerHTML = full; window.print();
+}
+function agreementHtml(b){
+  var tt = bookingTotals(b);
+  var h = '<p><b>Customer:</b> '+esc(b.customer)+'<br><b>Phone:</b> '+esc(b.phone)+' &nbsp; <b>Email:</b> '+esc(b.email)
+    + '<br><b>Delivery address:</b> '+esc(b.address)+'<br><b>Out:</b> '+fmtDate(b.outDate)+' &nbsp; <b>Event:</b> '+fmtDate(b.eventDate)+' &nbsp; <b>Return by:</b> '+fmtDate(b.backDate)+'</p>'
+    + '<table style="width:100%;border-collapse:collapse"><tr><th style="text-align:left">Item</th><th style="text-align:right">Qty</th><th style="text-align:right">Rate</th><th style="text-align:right">Amount</th></tr>';
+  tt.lines.forEach(function(l){ h += '<tr><td>'+esc(l.name)+'</td><td style="text-align:right">'+l.qty+'</td><td style="text-align:right">'+money(l.rate)+'</td><td style="text-align:right">'+money(l.rental)+'</td></tr>'; });
+  h += '</table><table style="width:100%;border-collapse:collapse;margin-top:8px">'
+    + '<tr><td>Rental subtotal</td><td style="text-align:right">'+money(tt.subtotal)+'</td></tr>'
+    + (b.waiverAccepted ? '<tr><td>Damage waiver</td><td style="text-align:right">'+money(tt.waiverTotal)+'</td></tr>' : '')
+    + (b.deliveryType==="deliver" ? '<tr><td>Delivery</td><td style="text-align:right">'+money(tt.deliveryFee)+'</td></tr>' : '')
+    + (tt.tax ? '<tr><td>Tax</td><td style="text-align:right">'+money(tt.tax)+'</td></tr>' : '');
+  b.charges.forEach(function(c){ h += '<tr><td>'+esc(c.label)+'</td><td style="text-align:right">'+money(c.amount)+'</td></tr>'; });
+  h += '<tr><td><b>Total due</b></td><td style="text-align:right"><b>'+money(tt.total)+'</b></td></tr>'
+    + '<tr><td>Paid</td><td style="text-align:right">'+money(b.amountPaid)+'</td></tr>'
+    + '<tr><td>Balance due</td><td style="text-align:right">'+money(tt.balanceDue)+'</td></tr>'
+    + '<tr><td>Refundable deposit required</td><td style="text-align:right">'+money(tt.depositRequired)+'</td></tr>'
+    + '<tr><td>Deposit paid / refunded / withheld</td><td style="text-align:right">'+money(b.depositPaid)+' / '+money(b.depositRefunded)+' / '+money(b.depositWithheld)+'</td></tr></table>'
+    + '<h3 style="font-size:14px">Terms</h3><p>Gear is the customer’s responsibility from pickup/delivery until return. Items returned late, damaged or excessively dirty may be charged against the deposit at the rates and replacement values on file; any withheld amount will be itemized. '
+    + (b.waiverAccepted ? 'The customer accepted the optional damage waiver shown above. ' : 'The customer declined the optional damage waiver and is responsible for damage up to replacement value. ')
+    + 'Cancellations and rescheduling follow the policy explained at booking.</p>'
+    + (b.notes ? '<p><b>Notes:</b> '+esc(b.notes)+'</p>' : '')
+    + (b.depositNote ? '<p><b>Deposit note:</b> '+esc(b.depositNote)+'</p>' : '')
+    + '<p style="margin-top:36px">Customer signature: ______________________________ &nbsp; Date: ____________</p>'
+    + '<p>'+esc(state.settings.company)+' signature: ______________________________ &nbsp; Date: ____________</p>';
+  return h;
+}
+function pullSheetHtml(b){
+  var tt = bookingTotals(b);
+  var h = '<p><b>'+esc(b.customer)+'</b> · '+esc(b.phone)+'<br>'+esc(b.address)+'<br>Out '+fmtDate(b.outDate)+' · Event '+fmtDate(b.eventDate)+' · Back '+fmtDate(b.backDate)
+    + (b.deliveryType==="deliver" ? '<br><b>DELIVER</b> — '+num(b.miles)+' mi one way' : '<br><b>CUSTOMER PICKUP</b>') + '</p>'
+    + '<table style="width:100%;border-collapse:collapse"><tr><th style="text-align:left">☐</th><th style="text-align:left">Item</th><th style="text-align:right">Qty to load</th><th style="text-align:left">Notes</th></tr>';
+  tt.lines.forEach(function(l){ var it = itemById(l.itemId);
+    h += '<tr><td>☐</td><td>'+esc(l.name)+'</td><td style="text-align:right">'+l.qty+'</td><td>'+esc(it ? it.notes : "")+'</td></tr>'; });
+  h += '</table>' + (b.notes ? '<p><b>Notes:</b> '+esc(b.notes)+'</p>' : '')
+    + '<p style="margin-top:24px">Loaded by: ______________________ &nbsp; Returned/checked by: ______________________</p>';
+  return h;
+}
+
+/* ---------- events ---------- */
+function bind(){
+  document.querySelectorAll("[data-edit]").forEach(function(b){ b.addEventListener("click", function(){ editDraft(b.getAttribute("data-edit")); }); });
+  document.querySelectorAll("[data-duplicate]").forEach(function(b){ b.addEventListener("click", function(){ duplicateBooking(b.getAttribute("data-duplicate")); }); });
+  document.querySelectorAll("[data-cleardemo]").forEach(function(b){ b.addEventListener("click", function(){
+    if(!confirm("Remove all sample items and bookings? Your own entries stay.")) return;
+    state.items = state.items.filter(function(x){ return !x.demo; });
+    state.bookings = state.bookings.filter(function(x){ return !x.demo; });
+    save(); newDraft(); render(); }); });
+  document.querySelectorAll("[data-agree]").forEach(function(b){ b.addEventListener("click", function(){
+    var bk = bookingById(b.getAttribute("data-agree")); if(bk) printDoc("Rental Agreement", agreementHtml(bk)); }); });
+  document.querySelectorAll("[data-pull]").forEach(function(b){ b.addEventListener("click", function(){
+    var bk = bookingById(b.getAttribute("data-pull")); if(bk) printDoc("Pull Sheet", pullSheetHtml(bk)); }); });
+  document.querySelectorAll("[data-item]").forEach(function(b){ b.addEventListener("click", function(){
+    ui.editingItem = b.getAttribute("data-item"); render(); }); });
+  if(ui.tab==="builder"){
+    ["f_out","f_back","f_billing","f_delivery","f_waiver"].forEach(function(id){ var el = document.getElementById(id);
+      if(el) el.addEventListener("change", refreshTotals); });
+    document.querySelectorAll("[data-qty]").forEach(function(inp){ inp.addEventListener("change", refreshTotals); });
+    var ac = document.getElementById("addCharge"); if(ac) ac.addEventListener("click", function(){
+      readDraftFromDOM(); ui.draft.charges.push({ label:"", amount:0 }); render(); });
+    var sv = document.getElementById("saveBooking"); if(sv) sv.addEventListener("click", saveDraftBooking);
+    var svs = document.getElementById("saveBookingSticky"); if(svs) svs.addEventListener("click", saveDraftBooking);
+    var cust = document.getElementById("f_customer"); if(cust){ cust.addEventListener("change", autofillCustomer); cust.addEventListener("blur", autofillCustomer); }
+    var rs = document.getElementById("resetDraft"); if(rs) rs.addEventListener("click", function(){ newDraft(); render(); });
+    var pa = document.getElementById("printAgree"); if(pa) pa.addEventListener("click", function(){
+      readDraftFromDOM(); printDoc("Rental Agreement", agreementHtml(ui.draft)); });
+    var pp = document.getElementById("printPull"); if(pp) pp.addEventListener("click", function(){
+      readDraftFromDOM(); printDoc("Pull Sheet", pullSheetHtml(ui.draft)); });
+    var del = document.getElementById("delBooking"); if(del) del.addEventListener("click", function(){
+      if(!confirm("Delete this booking? This cannot be undone.")) return;
+      state.bookings = state.bookings.filter(function(x){ return x.id !== ui.editingBooking; });
+      save(); newDraft(); ui.tab = "bookings"; render(); });
+  }
+  if(ui.tab==="inventory"){
+    var si = document.getElementById("saveItem"); if(si) si.addEventListener("click", function(){
+      function v(id){ var el = document.getElementById(id); return el ? el.value : ""; }
+      var name = v("i_name").trim(); if(!name){ alert("Give the item a name first."); return; }
+      var data = { name:name, category: v("i_cat") || "Other", qtyOwned: Math.max(0, int(v("i_qty"))),
+        rateDay: Math.max(0, num(v("i_day"))), rateWeekend: Math.max(0, num(v("i_wknd"))),
+        depositEach: Math.max(0, num(v("i_dep"))), waiverPct: Math.max(0, num(v("i_waiver"))),
+        replacement: Math.max(0, num(v("i_repl"))), notes: v("i_notes") };
+      if(ui.editingItem){ var it = itemById(ui.editingItem); Object.assign(it, data); }
+      else { data.id = uid("i"); data.demo = false; state.items.push(data); }
+      ui.editingItem = null; save(); render(); });
+    var ci = document.getElementById("cancelItem"); if(ci) ci.addEventListener("click", function(){ ui.editingItem = null; render(); });
+    var di = document.getElementById("delItem"); if(di) di.addEventListener("click", function(){
+      if(!confirm("Delete this item? Existing bookings keep their records, but the item leaves the catalog.")) return;
+      state.items = state.items.filter(function(x){ return x.id !== ui.editingItem; });
+      ui.editingItem = null; save(); render(); });
+  }
+  if(ui.tab==="availability"){
+    ["a_out","a_back"].forEach(function(id){ var el = document.getElementById(id);
+      if(el) el.addEventListener("change", function(){
+        ui.availOut = document.getElementById("a_out").value; ui.availBack = document.getElementById("a_back").value; render(); }); });
+  }
+  if(ui.tab==="settings"){
+    var ss = document.getElementById("saveSettings"); if(ss) ss.addEventListener("click", function(){
+      function v(id){ var el = document.getElementById(id); return el ? el.value : ""; }
+      state.settings.company = v("s_company"); state.settings.phone = v("s_phone");
+      state.settings.email = v("s_email"); state.settings.address = v("s_address");
+      state.settings.deliveryPerMile = Math.max(0, num(v("s_mile")));
+      state.settings.laborRate = Math.max(0, num(v("s_labor")));
+      state.settings.waiverPct = Math.max(0, num(v("s_waiver")));
+      state.settings.taxPct = Math.max(0, num(v("s_tax")));
+      save(); render(); });
+    var ex = document.getElementById("exportData"); if(ex) ex.addEventListener("click", function(){
+      var blob = new Blob([JSON.stringify(state, null, 2)], { type:"application/json" });
+      var a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+      a.download = "partybook-backup-" + todayISO() + ".json"; document.body.appendChild(a); a.click();
+      document.body.removeChild(a); setTimeout(function(){ URL.revokeObjectURL(a.href); }, 500); });
+    var ib = document.getElementById("importBtn"), ifile = document.getElementById("importFile");
+    if(ib && ifile){ ib.addEventListener("click", function(){ ifile.click(); });
+      ifile.addEventListener("change", function(){
+        var f = ifile.files && ifile.files[0]; if(!f) return;
+        var r = new FileReader();
+        r.onload = function(){ try{ var parsed = JSON.parse(r.result);
+            if(!parsed || (!Array.isArray(parsed.items) && !Array.isArray(parsed.bookings))) throw new Error("shape");
+            if(!confirm("Replace the current book with this backup? Your current items and bookings will be replaced — this cannot be undone.")) return;
+            state = sanitizeState(parsed); save(); alert("Backup imported."); render();
+          }catch(e){ alert("That file could not be imported — it is not a PartyBook backup."); } };
+        r.readAsText(f); }); }
+    var cd = document.getElementById("clearDemo"); if(cd) cd.addEventListener("click", function(){
+      if(!confirm("Remove all sample items and bookings? Your own entries stay.")) return;
+      state.items = state.items.filter(function(x){ return !x.demo; });
+      state.bookings = state.bookings.filter(function(x){ return !x.demo; });
+      save(); newDraft(); render(); });
+    var ea = document.getElementById("eraseAll"); if(ea) ea.addEventListener("click", function(){
+      if(!confirm("Erase EVERYTHING — all items, bookings and settings — and start empty?")) return;
+      state = { settings:{ company:"", phone:"", email:"", address:"", deliveryPerMile:2.5, laborRate:40, waiverPct:10, taxPct:0 },
+        items:[], bookings:[] };
+      save(); newDraft(); render(); });
+  }
+}
+function saveDraftBooking(){
+  readDraftFromDOM();
+  var d = ui.draft;
+  if(!d.customer.trim()){ alert("Add a customer / event name first."); return; }
+  if(!validISODate(d.outDate) || !validISODate(d.backDate) || !validISODate(d.eventDate)){ alert("Check the dates — all three must be real dates."); return; }
+  if(d.backDate < d.outDate){ alert("The back date is before the out date. Fix the dates before saving."); return; }
+  if(!d.lines.length){ alert("Add at least one gear line with a quantity."); return; }
+  var clean = sanitizeState({ settings: state.settings, items: state.items, bookings:[d] }).bookings[0];
+  if(ui.editingBooking){ var idx = -1;
+    state.bookings.forEach(function(x,i){ if(x.id===ui.editingBooking) idx = i; });
+    clean.id = ui.editingBooking; clean.demo = state.bookings[idx] ? !!state.bookings[idx].demo : false;
+    if(idx>=0) state.bookings[idx] = clean; else state.bookings.push(clean);
+  } else { clean.id = uid("b"); clean.demo = false; state.bookings.push(clean); ui.editingBooking = clean.id; }
+  ui.draft = JSON.parse(JSON.stringify(clean));
+  save(); ui.tab = "bookings"; render();
+}
+
+/* ---------- export for QA harness / reuse ---------- */
+var PB = { esc:esc, num:num, money:money, validISODate:validISODate, addDays:addDays, daysBetween:daysBetween,
+  rangesOverlap:rangesOverlap, billedDays:billedDays, lineRate:lineRate, bookingTotals:bookingTotals,
+  reservedQty:reservedQty, availability:availability, bookingConflicts:bookingConflicts, isOverdue:isOverdue,
+  moneySummary:moneySummary, seedData:seedData, sanitizeState:sanitizeState,
+  agreementHtml:agreementHtml, pullSheetHtml:pullSheetHtml, printDoc:printDoc,
+  setTab:function(t){ ui.tab = t; render(); }, getUi:function(){ return ui; },
+  newDraft:newDraft, saveDraftBooking:saveDraftBooking, duplicateBooking:duplicateBooking, customerMemory:customerMemory, hasDemoRecords:hasDemoRecords, refreshTotals:refreshTotals,
+  getState:function(){ return state; }, setState:function(s){ state = s; } };
+if(typeof window!=="undefined") window.PB = PB;
+if(typeof module!=="undefined" && module.exports) module.exports = PB;
+
+/* ---------- boot ---------- */
+load();
+render();
+</script>
+
+<style id="wwLegalCss">
+#wwLegalOverlay{position:fixed;inset:0;z-index:99990;background:rgba(10,12,16,.72);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:18px 12px;box-sizing:border-box}
+#wwLegalOverlay[hidden]{display:none}
+.ww-card{background:#fff;color:#16181d;max-width:560px;width:100%;border-radius:14px;padding:22px 20px;box-sizing:border-box;box-shadow:0 12px 40px rgba(0,0,0,.4)}
+.ww-appname{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#5b6472;font-weight:700}
+.ww-card h2{margin:6px 0 10px;font-size:24px}
+.ww-sum{font-size:17px;line-height:1.45;font-weight:600;margin:10px 0}
+.ww-follow{color:#444c58;font-size:14px;line-height:1.45}
+.ww-updated{background:#fff4d6;border:1px solid #e3c566;color:#5c4a00;border-radius:8px;padding:8px 10px;font-size:14px}
+.ww-btn{display:block;width:100%;min-height:48px;margin:10px 0 0;padding:12px 14px;font-size:16px;border-radius:10px;border:1px solid #9aa3af;background:#f2f4f7;color:#16181d;cursor:pointer;box-sizing:border-box}
+.ww-btn.ww-primary{background:#14532d;border-color:#14532d;color:#fff;font-weight:700;min-height:52px}
+.ww-btn.ww-primary:disabled{opacity:.45;cursor:not-allowed}
+.ww-check{display:flex;gap:10px;align-items:flex-start;margin:14px 0 2px;font-size:15px;line-height:1.4;color:#16181d;cursor:pointer}
+.ww-check input{width:22px;height:22px;flex:0 0 auto;margin:1px 0 0;accent-color:#14532d;cursor:pointer}
+#wwLegalPanel{position:fixed;inset:0;z-index:99995;background:#fff;color:#16181d;overflow-y:auto;box-sizing:border-box}
+#wwLegalPanel[hidden]{display:none}
+.ww-panel-inner{max-width:720px;margin:0 auto;padding:16px 18px 40px;box-sizing:border-box;line-height:1.55}
+.ww-panel-inner h3{margin-top:26px}
+.ww-panel-inner h4{margin-top:20px}
+.ww-accept{background:#eef7ee;border:1px solid #b9d8b9;border-radius:8px;padding:10px 12px}
+.ww-seller{margin-top:28px;padding-top:12px;border-top:1px solid #ddd;color:#444c58}
+#wwLegalClose{min-height:48px;padding:10px 16px;font-size:16px;border-radius:10px;border:1px solid #9aa3af;background:#f2f4f7;color:#16181d;cursor:pointer}
+[data-ww-legal-card]{border:1px solid #9aa3af;border-radius:12px;padding:14px;margin:14px 0;background:rgba(127,127,127,.06)}
+[data-ww-legal-btn]{min-height:48px;padding:10px 16px;font-size:16px;border-radius:10px;border:1px solid #14532d;background:#14532d;color:#fff;font-weight:700;cursor:pointer;width:100%}
+@media print{#wwLegalOverlay,#wwLegalPanel,[data-ww-legal-card]{display:none!important}}
+</style>
+
+<!-- ===== White Wolf Legal Pattern v1.0 ===== -->
+<div id="wwLegalOverlay" hidden>
+  <div class="ww-card" role="dialog" aria-modal="true" aria-labelledby="wwLegalTitle">
+    <div class="ww-appname">PartyBook</div>
+    <h2 id="wwLegalTitle">Terms of Use</h2>
+    <p class="ww-updated" id="wwUpdatedNote" hidden>Our terms were updated (v1.0).</p>
+    <p class="ww-sum">Your data stays on your device.<br>Estimates are aids, not guarantees.<br>You&#39;re responsible for checking outputs before you rely on them.</p>
+    <p class="ww-follow">The full Terms and Disclaimer are one tap away, now and any time in Settings &#8594; Legal.</p>
+    <button type="button" class="ww-btn" id="wwReadTerms">Read the full Terms</button>
+    <button type="button" class="ww-btn" id="wwReadDisc">Read the Estimator Disclaimer</button>
+    <label class="ww-check"><input type="checkbox" id="wwAgreeCheck"> <span>I have read the disclaimer and I agree to the Terms of Use</span></label>
+    <button type="button" class="ww-btn ww-primary" id="wwAgree" disabled>I Agree</button>
+  </div>
+</div>
+<div id="wwLegalPanel" hidden>
+  <div class="ww-panel-inner">
+    <button type="button" id="wwLegalClose">&#8592; Back</button>
+    <h2>Legal</h2>
+    <p class="ww-accept" id="wwAcceptLine">You have not recorded acceptance of the Terms yet.</p>
+    <h3>Terms of Use</h3>
+    <p><strong>Version 1.0 (DRAFT — pending attorney review)</strong> <strong>Seller: White Wolf Tree Service LLC, selling digital products under the name "White Wolf Digital"</strong> <strong>Contact: whitewolfoklahoma@gmail.com</strong></p>
+<hr>
+<h4>1. What you're buying</h4>
+<p>Our apps (including ForgeFit AI, ForgeKitchen, TreeBid Pro, SnowBid, WashPrice Pro, RoofSquares, JobProfit Tracker, PastureLedger, and the other titles sold under White Wolf Digital) are single-file software tools. When you buy one, you are buying a <strong>license to use the file</strong>, not ownership of the software itself.</p>
+<h4>2. Your license</h4>
+<ul>
+<li>You may use the app for your own personal or business work.</li>
+<li>You may open it on your own devices (phone, tablet, computer) and move your</li>
+</ul>
+<p>own data between them using the app's built-in backup/export tools.</p>
+<ul>
+<li>You may <strong>not</strong> resell, redistribute, give away, upload, or share the app</li>
+</ul>
+<p>file (or a copy of it) with anyone else — including posting it online, bundling it with other products, or selling access to it.</p>
+<ul>
+<li>You may <strong>not</strong> claim the app as your own work, remove its branding or</li>
+</ul>
+<p>notices, or use it to build a competing product for resale.</p>
+<ul>
+<li>One purchase = one buyer. A business purchase covers the buyer and their</li>
+</ul>
+<p>own employees using it for that business's work; it does not cover other businesses.</p>
+<h4>3. Your data stays yours — and stays on your device</h4>
+<ul>
+<li>The current versions of our apps run <strong>entirely on your device</strong>. They have</li>
+</ul>
+<p>no accounts, no sign-in, no analytics, and they collect, transmit, and store <strong>none</strong> of your information on any server. We never see your data.</p>
+<ul>
+<li>Your records are stored in your browser/app storage on your device. **You</li>
+</ul>
+<p>are responsible for backing them up** using the app's export tools. If you clear your browser data, lose your device, or uninstall the app, your records may be permanently lost, and we cannot recover them — we never had a copy.</p>
+<ul>
+<li>Files you export (backups, quotes, PDFs) are under your control. Where you</li>
+</ul>
+<p>store or send them is up to you.</p>
+<h4>4. Estimates are tools, not guarantees</h4>
+<p>Every number our apps produce — bids, prices, costs, calorie targets, projections, schedules, totals — is an <strong>estimate generated from the information you enter and the settings you choose</strong>. Outputs are aids for your own judgment, not guarantees of price, profit, outcome, or result. You are responsible for checking any output before relying on it (see also the disclaimer that applies to your app: Health Disclaimer for fitness/nutrition apps, Estimator Disclaimer for contractor tools). If an input is wrong, the output will be wrong.</p>
+<h4>5. Acceptable use</h4>
+<p>Don't use the apps to break the law, infringe anyone's rights, or misrepresent quotes, invoices, or records to your own customers. For the fitness apps, the guardrails in the app (healthy-rate limits, calorie floor) are part of the product — don't treat the app as a way around them.</p>
+<h4>6. Provided "as is"</h4>
+<p>The apps are provided <strong>"as is" and "as available," without warranties of any kind</strong>, express or implied — including merchantability, fitness for a particular purpose, accuracy of calculations, and uninterrupted or error-free operation — to the maximum extent allowed by law. Software has bugs; browsers change; we work to fix problems but do not promise any app is error-free or will work on every device or browser forever.</p>
+<h4>7. Limitation of liability</h4>
+<p>To the maximum extent allowed by law:</p>
+<ul>
+<li>We are **not liable for indirect, incidental, special, or consequential</li>
+</ul>
+<p>damages** — including lost profits, lost or mispriced jobs, lost data, or business interruption — arising from use of the apps.</p>
+<ul>
+<li>Our total liability for any claim connected to an app is limited to the</li>
+</ul>
+<p><strong>amount you paid for that app</strong>.</p>
+<ul>
+<li>Nothing in these terms limits liability that cannot legally be limited.</li>
+</ul>
+<h4>8. Refunds</h4>
+<p>Refunds are handled <strong>by the storefront you bought from, under that storefront's policy</strong> — Gumroad's refund policy for Gumroad purchases, and Google Play's refund policy for Play purchases. These terms do not add to, replace, or override the storefront's refund rules. If a file is defective and won't open, contact us at whitewolfoklahoma@gmail.com and we'll fix or replace the file.</p>
+<h4>9. Updates and changes to these terms</h4>
+<ul>
+<li>We may release updated versions of an app. Updates may add, change, or</li>
+</ul>
+<p>remove features.</p>
+<ul>
+<li>We may update these terms. The version you agreed to is recorded in the</li>
+</ul>
+<p>app (version number and date) at first-run acceptance. If terms change, the app may ask you to accept the new version once on next open. Updated terms apply going forward, not retroactively.</p>
+<ul>
+<li>If you don't agree to an updated version of the terms, stop using the app.</li>
+</ul>
+<h4>10. Governing law</h4>
+<p>These terms are governed by the laws of the <strong>State of Oklahoma</strong>, USA. (Attorney to confirm governing law and venue before publication.)</p>
+<h4>11. Contact</h4>
+<p>White Wolf Tree Service LLC (White Wolf Digital) — whitewolfoklahoma@gmail.com.</p>
+<hr>
+<h4>CONNECTED FEATURES — takes effect only when these features ship</h4>
+<p><em>The sections below apply only to future connected features (device sync via Health Connect, AI voice logging, and the AI Goal Preview in ForgeFit). They do not apply to the current offline versions, which never transmit data.</em></p>
+<ul>
+<li><strong>Opt-in only.</strong> Connected features are off by default. Each one asks for</li>
+</ul>
+<p>your separate, explicit consent — on its own consent screen, in plain language — before anything leaves your device. Declining never disables the app's offline features.</p>
+<ul>
+<li><strong>What gets sent.</strong> Only what the consent screen names, only when you use</li>
+</ul>
+<p>the feature: for example, a meal description (text, or audio only if cloud transcription is on) for AI voice logging, or the single photo you choose for an AI Goal Preview.</p>
+<ul>
+<li><strong>No retention by us.</strong> Our relay service passes your request to the named</li>
+</ul>
+<p>AI provider and keeps nothing — no copies of your photos, audio, transcripts, or entries are stored on our servers. Provider handling is described on the consent screen and in the Privacy Policy.</p>
+<ul>
+<li><strong>Health data stays on the device.</strong> Device sync (Health Connect) reads</li>
+</ul>
+<p>your health data on your phone and stores it in the app on your phone. It is not uploaded to us.</p>
+<ul>
+<li><strong>Allowances.</strong> Some connected features run on third-party AI services we</li>
+</ul>
+<p>pay for per use, so they may include a monthly allowance described in the app (for example, a set number of AI previews or voice entries per month), with optional additional credits. Allowances and pricing will be shown in the app before you use the feature; they are not a subscription unless the app says so in plain words.</p>
+<ul>
+<li><strong>Permissions.</strong> Connected features may request device permissions (such</li>
+</ul>
+<p>as Health Connect access or the microphone) at the moment you first use them. You can revoke permissions any time in your device settings; the related feature will simply stop working.</p>
+    <h3>Estimator Disclaimer</h3>
+<p><strong>Applies to: TreeBid Pro, SnowBid, WashPrice Pro, RoofSquares, JobProfit Tracker, FieldForms Toolkit, PaintPro, FenceDeck, MarketMaker, and the other estimating/pricing tools sold under White Wolf Digital — including bundles that contain them.</strong></p>
+<h4>Estimating aids, not finished quotes</h4>
+<ul>
+<li>These apps are <strong>estimating and record-keeping aids</strong>. Every bid, price,</li>
+</ul>
+<p>cost, measurement, and total they produce is an <strong>estimate based on the information and rates you enter</strong>.</p>
+<ul>
+<li>**You — the business owner — are responsible for verifying everything</li>
+</ul>
+<p>before you quote a customer:** measurements and quantities, site conditions, your current material and labor costs, your rates and margins, taxes, permit and license requirements, disposal rules, and any contract terms.</p>
+<ul>
+<li>Default rates, presets, and sample data included in the apps are starting</li>
+</ul>
+<p>points only. They are not market prices, not industry standards, and not a recommendation of what you should charge.</p>
+<ul>
+<li>A saved quote keeps the prices in effect when you created it (price</li>
+</ul>
+<p>snapshot). Changing your presets later does not change saved quotes — and a saved quote is still your responsibility to review before sending.</p>
+<h4>Specific tools</h4>
+<ul>
+<li><strong>TreeBid Pro:</strong> tree work is dangerous and site-specific. Difficulty</li>
+</ul>
+<p>factors and presets cannot see the actual tree, lean, rot, targets, or access. Inspect every job in person before final pricing. The "Invoice with Wave" feature is an open-and-paste handoff — TreeBid does not connect to Wave, and the invoice you send from Wave is yours.</p>
+<ul>
+<li><strong>RoofSquares / measurement tools:</strong> confirm roof measurements and pitch</li>
+</ul>
+<p>in person or by your usual method before ordering materials.</p>
+<ul>
+<li><strong>SnowBid / seasonal tools:</strong> route times, snowfall amounts, and service</li>
+</ul>
+<p>pricing vary by storm and site; seasonal contracts are your agreement with your customer, on your terms.</p>
+<ul>
+<li><strong>JobProfit Tracker:</strong> profit figures depend on the costs you enter.</li>
+</ul>
+<p>The app is not accounting or tax software and does not replace your bookkeeper or accountant.</p>
+<h4>Bottom line</h4>
+<p>If an output and your judgment disagree, trust your judgment — then fix the input. We are not responsible for jobs won, lost, or mispriced based on app outputs, within the limits of the Terms of Use.</p>
+    <h3>Privacy</h3>
+    <p>This app has no accounts and collects no data. Everything you enter is stored only on your device, in your browser/app storage, and is never uploaded, transmitted, or shared. We never see your data. Files you export (backups, quotes, PDFs) are under your control &mdash; store and send them only where you choose. If you clear your browser data, lose your device, or uninstall the app, your records may be permanently lost, so export backups regularly.</p>
+    <p class="ww-seller">Sold by White Wolf Tree Service LLC (White Wolf Digital) &mdash; whitewolfoklahoma@gmail.com</p>
+  </div>
+</div>
+
+<script>
+/* ===== White Wolf Legal Pattern v1.0 ===== */
+(function(){
+"use strict";
+var TERMS_VERSION = "1.0";
+var WW_KEY = "partybook_v1";
+var WW_HAS_DISC = true;
+var WWREC = null;
+function wwValid(r){ return r && typeof r === "object" && typeof r.termsVersion === "string" && !!r.termsVersion; }
+function wwVerCmp(a,b){ var pa=String(a).split("."), pb=String(b).split("."); for(var i=0;i<3;i++){ var x=parseInt(pa[i]||"0",10)||0, y=parseInt(pb[i]||"0",10)||0; if(x<y) return -1; if(x>y) return 1; } return 0; }
+function wwReadStored(){ try{ var raw = localStorage.getItem(WW_KEY); if(!raw) return null; var o = JSON.parse(raw); return (o && typeof o === "object") ? o : null; }catch(e){ return null; } }
+var _wwStored = wwReadStored();
+if(_wwStored && wwValid(_wwStored.legal)) WWREC = _wwStored.legal;
+try{
+  var _wwOrigSet = localStorage.setItem.bind(localStorage);
+  localStorage.setItem = function(k,v){
+    if(k === WW_KEY && typeof v === "string"){
+      try{ var o = JSON.parse(v); if(o && typeof o === "object" && !Array.isArray(o)){
+        if(wwValid(o.legal)){ WWREC = o.legal; }
+        else if(WWREC){ o.legal = WWREC; v = JSON.stringify(o); }
+      } }catch(e){}
+    }
+    return _wwOrigSet(k,v);
+  };
+}catch(e){}
+function wwSyncState(){ try{ if(typeof state !== "undefined" && state && typeof state === "object" && WWREC) state.legal = WWREC; }catch(e){} }
+function wwPersist(){
+  wwSyncState();
+  try{ save() }catch(e){}
+  try{ var o = wwReadStored(); if(o){ o.legal = WWREC; localStorage.setItem(WW_KEY, JSON.stringify(o)); } }catch(e){}
+}
+function wwAcceptLine(){
+  var el = document.getElementById("wwAcceptLine"); if(!el) return;
+  if(WWREC && WWREC.acceptedDate){ el.textContent = "You agreed to Terms v" + WWREC.termsVersion + " on " + WWREC.acceptedDate + "."; }
+  else { el.textContent = "You have not recorded acceptance of the Terms yet."; }
+}
+function wwOpenLegal(){ var p = document.getElementById("wwLegalPanel"); if(p){ p.hidden = false; p.scrollTop = 0; } wwAcceptLine(); }
+function wwCloseLegal(){ var p = document.getElementById("wwLegalPanel"); if(p) p.hidden = true; }
+function wwInit(){
+  var overlay = document.getElementById("wwLegalOverlay");
+  var agree = document.getElementById("wwAgree");
+  var rt = document.getElementById("wwReadTerms");
+  var rd = document.getElementById("wwReadDisc");
+  var close = document.getElementById("wwLegalClose");
+  if(rt) rt.addEventListener("click", wwOpenLegal);
+  if(rd) rd.addEventListener("click", wwOpenLegal);
+  if(close) close.addEventListener("click", wwCloseLegal);
+  var agreeCheck = document.getElementById("wwAgreeCheck");
+  if(agree) agree.disabled = !(agreeCheck && agreeCheck.checked);
+  if(agreeCheck && agree) agreeCheck.addEventListener("change", function(){ agree.disabled = !agreeCheck.checked; });
+  if(agree) agree.addEventListener("click", function(){
+    if(agree.disabled || !(agreeCheck && agreeCheck.checked)) return;
+    WWREC = { termsVersion: TERMS_VERSION, acceptedDate: new Date().toISOString().slice(0,10), disclaimerShown: WW_HAS_DISC };
+    wwPersist(); wwAcceptLine();
+    if(overlay) overlay.hidden = true;
+  });
+  wwSyncState(); wwAcceptLine();
+  if(!WWREC || wwVerCmp(WWREC.termsVersion, TERMS_VERSION) < 0){
+    if(WWREC){ var note = document.getElementById("wwUpdatedNote"); if(note) note.hidden = false; }
+    if(overlay) overlay.hidden = false;
+  }
+  var anchors = [{sel:"#app",marker:"Backup"}];
+  function wwEnsureBtn(){
+    for(var i=0;i<anchors.length;i++){
+      var a = anchors[i]; var el = document.querySelector(a.sel); if(!el) continue;
+      if(el.querySelector("[data-ww-legal-btn]")) continue;
+      var txt = el.textContent || "";
+      if(a.marker){ if(txt.toLowerCase().indexOf(a.marker.toLowerCase()) < 0) continue; }
+      else if(txt.replace(/\s+/g,"").length < 40) continue;
+      var card = document.createElement("div");
+      card.setAttribute("data-ww-legal-card","");
+      card.innerHTML = "<h3 style=\"margin:0 0 6px\">Legal</h3><p style=\"margin:0 0 10px\">Terms of Use, disclaimer and privacy for this app.</p>";
+      var b = document.createElement("button");
+      b.type = "button"; b.setAttribute("data-ww-legal-btn",""); b.textContent = "View Legal \u2014 Terms, Disclaimer & Privacy";
+      b.addEventListener("click", wwOpenLegal);
+      card.appendChild(b); el.appendChild(card);
+    }
+  }
+  wwEnsureBtn();
+  setInterval(wwEnsureBtn, 700);
+}
+if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", wwInit); else wwInit();
+})();
+</script>
+</body>
+</html>
